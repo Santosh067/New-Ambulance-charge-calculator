@@ -125,6 +125,8 @@
       grid-template-columns: 400px 1fr;
       gap: 1.5rem;
       align-items: start;
+      /* FIX: Prevent grid from exceeding viewport width */
+      max-width: 100%;
     }
 
     /* ── CARD ── */
@@ -133,6 +135,8 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.5rem;
+      /* FIX: Prevents grid child from overflowing its column width */
+      min-width: 0;
     }
     .card-label {
       font-size: 0.68rem; font-weight: 700;
@@ -399,9 +403,12 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      /* [M2-FIX] Horizontal scroll for wide table on narrow screens */
+      /* Scroll the table inside without breaking card layout */
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      /* Ensure it never exceeds the card width */
+      max-width: 100%;
+      width: 100%;
     }
     .ref-panel.open { display: block; }
 
@@ -480,7 +487,23 @@
     @media (max-width: 768px) {
       body { padding: 1rem 0.9rem 3rem; }
       .grid { grid-template-columns: 1fr; }
-      .card { padding: 1.1rem; }
+      .card {
+        padding: 1.1rem;
+        /* FIX: Card must never exceed viewport width on mobile */
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      /* FIX: Allow ref-panel to scroll horizontally WITHIN the card */
+      .ref-panel {
+        overflow-x: auto !important;
+        /* Use negative margin trick to escape card's overflow:hidden */
+        margin-left: -1.1rem;
+        margin-right: -1.1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        width: calc(100% + 2.2rem);
+      }
       .site-header { margin-bottom: 1.5rem; gap: 0.7rem; }
       .header-copy h1 { font-size: 1rem; }
       .badge-internal { font-size: 0.6rem; }
@@ -505,7 +528,7 @@
 
   <!-- HEADER -->
   <header class="site-header">
-    <div class="logo">🚑</div>
+    <div class="logo"><img src="C:\Medulance Calculator\assets\medulance-logo.png" alt="Medulance Logo" style="width:28px;height:28px;object-fit:contain;border-radius:4px;" /></div>
     <div class="header-copy">
       <h1>Ambulance Charge Calculator</h1>
       <p>Medulance Operations · Internal Use Only</p>
@@ -652,7 +675,7 @@
   </div><!-- /grid -->
 
   <div class="footer">
-    Medulance · Ambulance Charge Calculator · Internal Operations Tool &nbsp;|&nbsp; v1.3 &nbsp;|&nbsp; Created By - Santosh Sharma
+    Medulance · Ambulance Charge Calculator · Internal Operations Tool &nbsp;|&nbsp; v1.4 &nbsp;|&nbsp; Created By - Santosh Sharma
   </div>
 
 </div><!-- /wrap -->
