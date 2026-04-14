@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medulance — Ambulance Charge Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0b0d12;
+      --surface:     #111318;
+      --card:        #161a24;
+      --card-hover:  #1c2130;
+      --border:      #232838;
+      --border-soft: #1c2030;
+      --accent:      #e63946;
+      --accent-dim:  rgba(230,57,70,0.12);
+      --accent-glow: rgba(230,57,70,0.25);
+      --blue:        #4a90d9;
+      --blue-dim:    rgba(74,144,217,0.12);
+      --green:       #2ec27e;
+      --green-dim:   rgba(46,194,126,0.12);
+      --yellow:      #f6c90e;
+      --yellow-dim:  rgba(246,201,14,0.12);
+      --text-1: #eef0f6;
+      --text-2: #8892a4;
+      --text-3: #4a5268;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      padding: 2rem 1.25rem 4rem;
+      line-height: 1.5;
+    }
+
+    /* ── CONTAINER ── */
+    .wrap { max-width: 980px; margin: 0 auto; }
+
+    /* ── HEADER ── */
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2.25rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      width: 44px; height: 44px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .header-copy h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+    .header-copy p  { font-size: 0.78rem; color: var(--text-3); margin-top: 2px; }
+    .badge-internal {
+      margin-left: auto;
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 0.28rem 0.65rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+    .card-label {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 1.4rem;
+    }
+
+    /* ── FIELDS ── */
+    .field       { margin-bottom: 1.2rem; }
+    .field-label {
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .field-label .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    .input-wrap { position: relative; }
+    .input-wrap input,
+    .input-wrap select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-1);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.92rem;
+      padding: 0.7rem 2.6rem 0.7rem 0.9rem;
+      outline: none;
+      appearance: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .input-wrap input:focus,
+    .input-wrap select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .input-suffix {
+      position: absolute; right: 0.85rem; top: 50%;
+      transform: translateY(-50%);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem; color: var(--text-3);
+      pointer-events: none;
+    }
+
+    /* ── TOGGLE GROUP ── */
+    .toggle-wrap     { display: flex; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+    .toggle-wrap input[type="radio"] { display: none; }
+    .toggle-wrap label {
+      flex: 1; text-align: center;
+      padding: 0.6rem 0.5rem;
+      font-size: 0.82rem; font-weight: 600;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text-2);
+      border: none; margin: 0;
+      transition: background 0.18s, color 0.18s;
+      user-select: none;
+    }
+    .toggle-wrap.red  input[type="radio"]:checked + label { background: var(--accent); color: #fff; }
+    .toggle-wrap.blue input[type="radio"]:checked + label { background: var(--blue);   color: #fff; }
+
+    /* ── DIVIDER ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      width: 100%; padding: 0.85rem;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem; font-weight: 700;
+      cursor: pointer; margin-top: 0.25rem;
+      transition: background 0.18s, transform 0.15s, box-shadow 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary:hover {
+      background: #c1121f;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--accent-glow);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      width: 100%; padding: 0.6rem;
+      background: transparent; color: var(--text-3);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; cursor: pointer;
+      margin-top: 0.6rem;
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .btn-ghost:hover { border-color: var(--text-2); color: var(--text-2); }
+
+    /* ── RESULT PANEL ── */
+    .result-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 320px;
+      gap: 0.75rem;
+      color: var(--text-3);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+    .result-empty .icon { font-size: 2.75rem; opacity: 0.25; }
+
+    .result-panel { display: none; }
+    .result-panel.visible { display: block; animation: fadeUp 0.3s ease; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Total Charge */
+    .charge-block { margin-bottom: 1.25rem; }
+    .charge-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+    .charge-amount {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 2.75rem; font-weight: 600;
+      color: var(--green);
+      letter-spacing: -0.03em;
+      margin: 0.2rem 0 0.6rem;
+      line-height: 1;
+    }
+    .tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 0.22rem 0.55rem; border-radius: 5px;
+    }
+    .tag-red    { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+    .tag-blue   { background: var(--blue-dim);   color: var(--blue);   border: 1px solid var(--blue); }
+    .tag-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid var(--green); }
+
+    /* Fallback Notice */
+    .fallback-notice {
+      display: none;
+      background: var(--yellow-dim);
+      border: 1px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--yellow);
+      line-height: 1.6;
+      gap: 0.5rem;
+    }
+    .fallback-notice.visible { display: flex; }
+    .fallback-notice .fi { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* Steps */
+    .steps-label {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.75rem;
+    }
+    .step {
+      display: flex; gap: 0.85rem; align-items: flex-start;
+      padding: 0.72rem 0.9rem;
+      background: var(--surface);
+      border-radius: 8px;
+      border-left: 3px solid var(--border);
+      margin-bottom: 0.5rem;
+      transition: border-color 0.2s;
+    }
+    .step.active { border-left-color: var(--accent); }
+    .step.fallback-step { border-left-color: var(--yellow); }
+    .step.final-step { border-left-color: var(--green); }
+
+    .step-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; font-weight: 600;
+      color: var(--accent);
+      min-width: 22px;
+      padding-top: 2px;
+    }
+    .step.fallback-step .step-num { color: var(--yellow); }
+    .step.final-step    .step-num { color: var(--green); }
+
+    .step-body { flex: 1; }
+    .step-desc {
+      font-size: 0.74rem; color: var(--text-3);
+      margin-bottom: 3px;
+    }
+    .step-math {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem; color: var(--text-2);
+    }
+    .step-math .result {
+      color: var(--green); font-weight: 600;
+    }
+    .step.fallback-step .step-math .result { color: var(--yellow); }
+
+    /* ── REFERENCE TABLE ── */
+    .ref-toggle {
+      width: 100%; background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-3);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      text-align: left;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .ref-toggle:hover { border-color: var(--text-2); color: var(--text-2); }
+    .ref-toggle .arrow { transition: transform 0.2s; }
+    .ref-toggle.open .arrow { transform: rotate(180deg); }
+
+    .ref-panel {
+      display: none;
+      margin-top: 0.75rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .ref-panel.open { display: block; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+    thead tr { background: var(--surface); }
+    th {
+      padding: 0.6rem 0.75rem;
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3);
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    th:first-child { text-align: left; }
+    td {
+      padding: 0.55rem 0.75rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-2);
+      border-bottom: 1px solid var(--border-soft);
+      text-align: center;
+    }
+    td:first-child { text-align: left; color: var(--text-1); font-weight: 500; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--card-hover); }
+    .bls { color: var(--blue); }
+    .als { color: var(--accent); }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 2.5rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-3);
+    }
+
+    /* ── ERROR STATE ── */
+    .field-error {
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-top: 0.35rem;
+      display: none;
+    }
+    .field-error.visible { display: block; }
+    .input-wrap.error input,
+    .input-wrap.error select {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="logo">🚑</div>
+    <div class="header-copy">
+      <h1>Ambulance Charge Calculator</h1>
+      <p>Medulance Operations · Internal Use Only</p>
+    </div>
+    <div class="badge-internal">Internal Tool</div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- LEFT: INPUT FORM -->
+    <div class="card">
+      <div class="card-label">Trip Details</div>
+
+      <!-- Distance -->
+      <div class="field" id="field-distance">
+        <div class="field-label"><span class="dot"></span> Total Distance Travelled</div>
+        <div class="input-wrap" id="wrap-distance">
+          <input type="number" id="inp-distance" placeholder="e.g. 55" min="0.1" step="0.1" />
+          <span class="input-suffix">km</span>
+        </div>
+        <div class="field-error" id="err-distance">Please enter a valid distance.</div>
+      </div>
+
+      <!-- Range -->
+      <div class="field">
+        <div class="field-label"><span class="dot"></span> Distance Range</div>
+        <div class="input-wrap" id="wrap-range">
+          <input type="text" value="▾ Range" style="display:none" />
+          <select id="inp-range">
+            <option value="" disabled selected>Select range…</option>
+            <option value="0">1 – 3 km</option>
+            <option value="1">3 – 5 km</option>
+            <option value="2">5 – 10 km</option>
+            <option value="3">10 – 25 km</option>
+            <option value="4">25 – 100 km</option>
+            <option value="5">&gt; 100 km</option>
+          </select>
+          <span class="input-suffix">▾</span>
+        </div>
+        <div class="field-error" id="err-range">Please select a distance range.</div>
+      </div>
+
+      <!-- Call Type -->
+      <div class="field">
+        <div class="field-label"><span class="dot"></span> Call Type</div>
+        <div class="toggle-wrap red">
+          <input type="radio" name="callType" id="r-pickup" value="pickup" checked />
+          <label for="r-pickup">🏠&nbsp; Pick Up</label>
+          <input type="radio" name="callType" id="r-drop" value="drop" />
+          <label for="r-drop">🏥&nbsp; Drop</label>
+        </div>
+      </div>
+
+      <!-- Ambulance Type -->
+      <div class="field">
+        <div class="field-label"><span class="dot"></span> Ambulance Type</div>
+        <div class="toggle-wrap blue">
+          <input type="radio" name="ambType" id="r-bls" value="BLS" checked />
+          <label for="r-bls">BLS &nbsp;·&nbsp; Basic</label>
+          <input type="radio" name="ambType" id="r-als" value="ALS" />
+          <label for="r-als">ALS &nbsp;·&nbsp; Advanced</label>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <button class="btn-primary" onclick="calculate()">⚡ Calculate Charge</button>
+      <button class="btn-ghost"   onclick="resetForm()">↺ &nbsp;Reset / Clear</button>
+
+      <!-- Reference Table Toggle -->
+      <button class="ref-toggle" id="refToggleBtn" onclick="toggleRef()">
+        <span>📊 &nbsp;View Price Chart Reference</span>
+        <span class="arrow">▾</span>
+      </button>
+      <div class="ref-panel" id="refPanel">
+        <table>
+          <thead>
+            <tr>
+              <th>Range</th>
+              <th>Base km</th>
+              <th class="bls">BLS Fixed</th>
+              <th class="bls">BLS /km</th>
+              <th class="als">ALS Fixed</th>
+              <th class="als">ALS /km</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1 – 3 km</td>   <td>1</td>   <td class="bls">₹2,000</td> <td class="bls">₹0</td>  <td class="als">₹3,750</td> <td class="als">₹0</td>  </tr>
+            <tr><td>3 – 5 km</td>   <td>3</td>   <td class="bls">₹2,160</td> <td class="bls">₹0</td>  <td class="als">₹3,750</td> <td class="als">₹0</td>  </tr>
+            <tr><td>5 – 10 km</td>  <td>5</td>   <td class="bls">₹2,160</td> <td class="bls">₹70</td> <td class="als">₹3,750</td> <td class="als">₹75</td> </tr>
+            <tr><td>10 – 25 km</td> <td>10</td>  <td class="bls">₹2,510</td> <td class="bls">₹55</td> <td class="als">₹4,125</td> <td class="als">₹60</td> </tr>
+            <tr><td>25 – 100 km</td><td>25</td>  <td class="bls">₹3,335</td> <td class="bls">₹40</td> <td class="als">₹5,025</td> <td class="als">₹45</td> </tr>
+            <tr><td>&gt; 100 km</td><td>100</td> <td class="bls">₹6,335</td> <td class="bls">₹30</td> <td class="als">₹8,400</td> <td class="als">₹35</td> </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /left card -->
+
+    <!-- RIGHT: RESULT PANEL -->
+    <div class="card">
+      <div class="card-label">Charge Breakdown</div>
+
+      <!-- Empty state -->
+      <div class="result-empty" id="stateEmpty">
+        <div class="icon">🧮</div>
+        <div>Fill in the trip details on the left<br>and press <strong>Calculate Charge</strong></div>
+      </div>
+
+      <!-- Results -->
+      <div class="result-panel" id="stateResult">
+
+        <!-- Total charge -->
+        <div class="charge-block">
+          <div class="charge-label">Total Ambulance Charge</div>
+          <div class="charge-amount" id="outAmount">₹0.00</div>
+          <div class="tags" id="outTags"></div>
+        </div>
+
+        <!-- Fallback warning -->
+        <div class="fallback-notice" id="outFallback">
+          <span class="fi">⚠️</span>
+          <span id="outFallbackText"></span>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="steps-label">Step-by-step Calculation</div>
+        <div id="outSteps"></div>
+
+      </div><!-- /stateResult -->
+    </div><!-- /right card -->
+
+  </div><!-- /grid -->
+
+  <div class="footer">
+    Medulance · Ambulance Charge Calculator · Internal Operations Tool &nbsp;|&nbsp; v1.0
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+  /* ─── PRICE CHART ─────────────────────────────────────── */
+  const CHART = [
+    { id:'1-3',    label:'1–3 km',     min:1,   max:3,        baseKm:1,   BLS:{fixed:2000, perKm:0},  ALS:{fixed:3750, perKm:0}  },
+    { id:'3-5',    label:'3–5 km',     min:3,   max:5,        baseKm:3,   BLS:{fixed:2160, perKm:0},  ALS:{fixed:3750, perKm:0}  },
+    { id:'5-10',   label:'5–10 km',    min:5,   max:10,       baseKm:5,   BLS:{fixed:2160, perKm:70}, ALS:{fixed:3750, perKm:75} },
+    { id:'10-25',  label:'10–25 km',   min:10,  max:25,       baseKm:10,  BLS:{fixed:2510, perKm:55}, ALS:{fixed:4125, perKm:60} },
+    { id:'25-100', label:'25–100 km',  min:25,  max:100,      baseKm:25,  BLS:{fixed:3335, perKm:40}, ALS:{fixed:5025, perKm:45} },
+    { id:'>100',   label:'> 100 km',   min:100, max:Infinity, baseKm:100, BLS:{fixed:6335, perKm:30}, ALS:{fixed:8400, perKm:35} },
+  ];
+
+  /* ─── HELPERS ─────────────────────────────────────────── */
+  function inr(n) {
+    return '₹' + n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  // Find which chart row an effective-km value belongs to (for fallback)
+  function findRangeFor(km) {
+    for (let i = CHART.length - 1; i >= 0; i--) {
+      if (km >= CHART[i].baseKm) return CHART[i];
+    }
+    return CHART[0];
+  }
+
+  /* ─── CALCULATE ───────────────────────────────────────── */
+  function calculate() {
+    // Read inputs
+    const distVal  = document.getElementById('inp-distance').value.trim();
+    const rangeVal = document.getElementById('inp-range').value;
+    const callType = document.querySelector('input[name="callType"]:checked').value;
+    const ambType  = document.querySelector('input[name="ambType"]:checked').value;
+
+    // Validate
+    let valid = true;
+    const wrapD = document.getElementById('wrap-distance');
+    const wrapR = document.getElementById('wrap-range');
+    const errD  = document.getElementById('err-distance');
+    const errR  = document.getElementById('err-range');
+
+    wrapD.classList.remove('error'); errD.classList.remove('visible');
+    wrapR.classList.remove('error'); errR.classList.remove('visible');
+
+    const distance = parseFloat(distVal);
+    if (!distVal || isNaN(distance) || distance <= 0) {
+      wrapD.classList.add('error'); errD.classList.add('visible');
+      valid = false;
+    }
+    if (rangeVal === '') {
+      wrapR.classList.add('error'); errR.classList.add('visible');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const selRange = CHART[parseInt(rangeVal)];
+    const steps    = [];
+    let   usedRange = selRange;
+    let   isFallback = false;
+
+    /* ── PICK UP ── */
+    if (callType === 'pickup') {
+      const effectiveKm = distance - 10;
+
+      steps.push({
+        cls:     'active',
+        num:     'S1',
+        desc:    'Subtract free pick-up distance (10 km)',
+        formula: `${distance} km  −  10 km`,
+        result:  `${effectiveKm} km`
+      });
+
+      // Fully within free zone
+      if (effectiveKm <= 0) {
+        steps.push({
+          cls:     'final-step',
+          num:     'S2',
+          desc:    'Distance is within the free 10 km pick-up zone',
+          formula: 'No additional charge applies',
+          result:  '₹ 0.00'
+        });
+        renderResult(0, callType, ambType, selRange, steps, false, null);
+        return;
+      }
+
+      // Fallback check
+      if (effectiveKm < selRange.baseKm) {
+        usedRange  = findRangeFor(effectiveKm);
+        isFallback = true;
+        steps.push({
+          cls:     'fallback-step',
+          num:     '⚠',
+          desc:    `Range fallback: effective km (${effectiveKm}) < base km of selected range ${selRange.label} (${selRange.baseKm} km)`,
+          formula: `Switching to lower range → ${usedRange.label}`,
+          result:  `Base km = ${usedRange.baseKm} km`
+        });
+      }
+
+      const rates     = usedRange[ambType];
+      const actualKm  = Math.max(0, effectiveKm - usedRange.baseKm);
+      const perCharge = actualKm * rates.perKm;
+      const total     = perCharge + rates.fixed;
+      const n         = steps.length;
+
+      steps.push({
+        cls:     'active', num: `S${n+1}`,
+        desc:    `Subtract base km (${usedRange.baseKm} km) from effective km`,
+        formula: `${effectiveKm} km  −  ${usedRange.baseKm} km`,
+        result:  `${actualKm} km`
+      });
+      steps.push({
+        cls:     'active', num: `S${n+2}`,
+        desc:    `Multiply actual km × per-km rate  [${ambType}: ₹${rates.perKm}/km]`,
+        formula: `${actualKm} km  ×  ₹${rates.perKm}`,
+        result:  inr(perCharge)
+      });
+      steps.push({
+        cls:     'final-step', num: `S${n+3}`,
+        desc:    `Add base fixed charge for ${usedRange.label} [${ambType}: ${inr(rates.fixed)}]`,
+        formula: `${inr(perCharge)}  +  ${inr(rates.fixed)}`,
+        result:  inr(total)
+      });
+
+      renderResult(total, callType, ambType, usedRange, steps, isFallback, selRange);
+    }
+
+    /* ── DROP ── */
+    else {
+      const rates     = selRange[ambType];
+      const actualKm  = Math.max(0, distance - selRange.baseKm);
+      const perCharge = actualKm * rates.perKm;
+      const total     = perCharge + rates.fixed;
+
+      steps.push({
+        cls:     'active', num: 'S1',
+        desc:    `Subtract base km (${selRange.baseKm} km) from total distance`,
+        formula: `${distance} km  −  ${selRange.baseKm} km`,
+        result:  `${actualKm} km`
+      });
+      steps.push({
+        cls:     'active', num: 'S2',
+        desc:    `Multiply actual km × per-km rate  [${ambType}: ₹${rates.perKm}/km]`,
+        formula: `${actualKm} km  ×  ₹${rates.perKm}`,
+        result:  inr(perCharge)
+      });
+      steps.push({
+        cls:     'final-step', num: 'S3',
+        desc:    `Add base fixed charge for ${selRange.label} [${ambType}: ${inr(rates.fixed)}]`,
+        formula: `${inr(perCharge)}  +  ${inr(rates.fixed)}`,
+        result:  inr(total)
+      });
+
+      renderResult(total, callType, ambType, selRange, steps, false, null);
+    }
+  }
+
+  /* ─── RENDER RESULT ───────────────────────────────────── */
+  function renderResult(total, callType, ambType, usedRange, steps, isFallback, origRange) {
+    document.getElementById('stateEmpty').style.display = 'none';
+    const panel = document.getElementById('stateResult');
+    panel.classList.add('visible');
+
+    // Amount
+    document.getElementById('outAmount').textContent = inr(total);
+
+    // Tags
+    document.getElementById('outTags').innerHTML = `
+      <span class="tag tag-red">${callType === 'pickup' ? '🏠 Pick Up' : '🏥 Drop'}</span>
+      <span class="tag tag-blue">${ambType}</span>
+      <span class="tag tag-green">${usedRange.label}</span>
+    `;
+
+    // Fallback notice
+    const fbEl = document.getElementById('outFallback');
+    if (isFallback && origRange) {
+      document.getElementById('outFallbackText').textContent =
+        `Range fallback applied. After subtracting the free 10 km, the effective distance fell below the base km of the selected range (${origRange.label}). The calculation was automatically re-run using the ${usedRange.label} range.`;
+      fbEl.classList.add('visible');
+    } else {
+      fbEl.classList.remove('visible');
+    }
+
+    // Steps
+    document.getElementById('outSteps').innerHTML = steps.map(s => `
+      <div class="step ${s.cls}">
+        <div class="step-num">${s.num}</div>
+        <div class="step-body">
+          <div class="step-desc">${s.desc}</div>
+          <div class="step-math">${s.formula} &nbsp;=&nbsp; <span class="result">${s.result}</span></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ─── RESET ───────────────────────────────────────────── */
+  function resetForm() {
+    document.getElementById('inp-distance').value = '';
+    document.getElementById('inp-range').value    = '';
+    document.querySelector('input[name="callType"][value="pickup"]').checked = true;
+    document.querySelector('input[name="ambType"][value="BLS"]').checked     = true;
+    document.getElementById('stateEmpty').style.display  = '';
+    document.getElementById('stateResult').classList.remove('visible');
+    document.getElementById('wrap-distance').classList.remove('error');
+    document.getElementById('wrap-range').classList.remove('error');
+    document.getElementById('err-distance').classList.remove('visible');
+    document.getElementById('err-range').classList.remove('visible');
+  }
+
+  /* ─── REFERENCE TABLE TOGGLE ──────────────────────────── */
+  function toggleRef() {
+    const btn   = document.getElementById('refToggleBtn');
+    const panel = document.getElementById('refPanel');
+    btn.classList.toggle('open');
+    panel.classList.toggle('open');
+  }
+
+  /* ─── Enter key support ───────────────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
